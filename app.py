@@ -38,7 +38,7 @@ chat_kb = InlineKeyboardMarkup(inline_keyboard=[
 async def cmd_start(message: Message):
     try:
         await message.answer(
-            "Привет! 👋\nЯ бот анонимных знакомств.\n\n"
+            "Привет! 👋\nЯ бот анонимных знакомств! 🎉\n\n"
             "Нажми кнопку ниже, чтобы найти собеседника.",
             reply_markup=search_kb
         )
