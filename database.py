@@ -22,6 +22,11 @@ def init_db():
             status TEXT
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS all_users (
+            user_id BIGINT PRIMARY KEY
+        )
+    """)
     conn.commit()
     cur.close()
     conn.close()
@@ -70,3 +75,45 @@ def get_waiting():
     cur.close()
     conn.close()
     return row[0] if row else None
+
+
+def add_all_user(user_id):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO all_users (user_id) VALUES (%s)
+        ON CONFLICT (user_id) DO NOTHING
+    """, (user_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def count_all_users():
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM all_users")
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return row[0] if row else 0
+
+
+def count_waiting():
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM users WHERE status = 'waiting'")
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return row[0] if row else 0
+
+
+def count_chatting():
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM users WHERE status = 'chatting'")
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return row[0] if row else 0

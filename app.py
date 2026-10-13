@@ -10,13 +10,18 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-from database import init_db, get_user, set_user, clear_user, get_waiting
+from database import (
+    init_db, get_user, set_user, clear_user, get_waiting,
+    add_all_user, count_all_users, count_waiting, count_chatting
+)
 
 logging.basicConfig(level=logging.INFO)
 
 BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 if not BOT_TOKEN:
     raise ValueError("TELEGRAM_TOKEN не установлен!")
+
+ADMIN_ID = 7435486390
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
@@ -37,6 +42,7 @@ chat_kb = InlineKeyboardMarkup(inline_keyboard=[
 @dp.message(CommandStart())
 async def cmd_start(message: Message):
     try:
+        add_all_user(message.from_user.id)
         await message.answer(
             "Привет! 👋\nЯ бот анонимных знакомств! 🎉\n\n"
             "Нажми кнопку ниже, чтобы найти собеседника.",
@@ -44,6 +50,24 @@ async def cmd_start(message: Message):
         )
     except Exception as e:
         logging.error(f"Ошибка /start: {e}")
+
+
+@dp.message(Command("status"))
+async def cmd_status(message: Message):
+    if message.from_user.id != ADMIN_ID:
+        await message.answer("Эта команда только для админа.")
+        return
+
+    total = count_all_users()
+    waiting = count_waiting()
+    chatting = count_chatting()
+
+    await message.answer(
+        f"📊 <b>Статистика бота</b>\n\n"
+        f"👥 Всего пользователей: <b>{total}</b>\n"
+        f"💬 В чате сейчас: <b>{chatting // 2}</b> пар\n"
+        f"⏳ В очереди: <b>{waiting}</b>"
+    )
 
 
 @dp.callback_query(F.data == "search")
